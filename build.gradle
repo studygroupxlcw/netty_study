@@ -1,0 +1,31 @@
+plugins {
+    id 'groovy'
+    id 'java'
+    id 'application'
+}
+
+group 'study'
+version '1.0.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+repositories {
+    mavenCentral()
+}
+mainClassName = 'com.xsy.chat.server.Application'
+jar {
+    manifest {
+        attributes 'Main-Class':'com.xsy.chat.server.Application'
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+dependencies {
+    compile (
+            'org.codehaus.groovy:groovy-all:2.3.11',
+            'io.netty:netty-all:4.1.35.Final'
+    )
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
