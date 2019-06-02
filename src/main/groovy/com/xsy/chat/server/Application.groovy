@@ -26,9 +26,9 @@ class Application {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline()
+                        .addLast(new StringEncoder(CharsetUtil.UTF_8))
                         .addLast(new DelimiterBasedFrameDecoder(4096, Delimiters.lineDelimiter()))
                         .addLast(new StringDecoder(CharsetUtil.UTF_8))
-                        .addLast(new StringEncoder(CharsetUtil.UTF_8))
                         .addLast(new ServerHandler())
             }
         })
