@@ -10,6 +10,9 @@ version '1.0.0'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 repositories {
+    maven{
+        url 'http://maven.aliyun.com/nexus/content/groups/public/'
+    }
     mavenCentral()
 }
 mainClassName = 'com.xsy.chat.server.Application'
