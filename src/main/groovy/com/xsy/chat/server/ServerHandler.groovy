@@ -14,7 +14,7 @@ class ServerHandler extends ChannelInboundHandlerAdapter {
                 ctx.writeAndFlush("[SERVER]: Chat Room User List: ${ConnectionManager.instance.getAllConnection().join("; ")} \r\n")
             } else {
                 ctx.writeAndFlush("[Myself]: ${msg}\r\n")
-                ConnectionManager.instance.sendToOther("[${ctx.channel().remoteAddress()}]: ${msg}", ctx.channel())
+                ConnectionManager.instance.sendToOther("[${ctx.channel().remoteAddress()}]: ${msg}\r\n", ctx.channel())
             }
         } else {
             ctx.writeAndFlush("[SERVER]: Invalid Message!!!")

@@ -33,7 +33,7 @@ class Application {
             }
         })
 
-        def channelFuture = serverBootstrap.bind(9000).sync()
+        def channelFuture = serverBootstrap.bind(9001).sync()
         channelFuture.channel().closeFuture().sync()
     }
 

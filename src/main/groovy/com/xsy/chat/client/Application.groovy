@@ -33,7 +33,7 @@ class Application {
                         .addLast(new ClientHandler())
             }
         })
-        def channel = bootstrap.connect("140.82.4.127", 9000).sync().channel()
+        def channel = bootstrap.connect("127.0.0.1", 9001).sync().channel()
         for(;;) {
             def data = "${System.in.newReader().readLine()}"
             if (data == "close") {
@@ -42,6 +42,7 @@ class Application {
             channel.writeAndFlush("${data}\r\n")
         }
         channel.close()
+        workers.shutdownGracefully()
     }
 
 }
