@@ -1,7 +1,6 @@
 package com.xsy.chat.client
 
 import io.netty.bootstrap.Bootstrap
-import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
@@ -28,17 +27,17 @@ class ClientApplication {
                         .addLast(new DelimiterBasedFrameDecoder(4096, Delimiters.lineDelimiter()))
                         .addLast(new StringDecoder(CharsetUtil.UTF_8))
                         .addLast(new StringEncoder(CharsetUtil.UTF_8))
-                        .addLast(new ClientApplication())
+                        .addLast(new ClientHandler())
             }
         })
 
-        ChannelFuture channelFuture = clientBootstrap.connect("140.82.4.127","9001").sync().channel()
-        while (true){
-            String message= System.in.newReader().readLine()
-            if ("close" == message){
+        def channelFuture = clientBootstrap.connect("140.82.4.127", 9001).sync().channel()
+        while (true) {
+            String message = System.in.newReader().readLine()
+            if ("close" == message) {
                 break
             }
-            channelFuture.writeAndFlush(message+ "\r\n")
+            channelFuture.writeAndFlush(message + "\r\n")
 
         }
         channelFuture.close()

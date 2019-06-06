@@ -6,7 +6,7 @@ import io.netty.channel.group.ChannelMatcher
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.util.concurrent.GlobalEventExecutor
 
-@Singleton
+@Singleton(lazy = true)
 class ConnectionManager {
 
     private ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE)
