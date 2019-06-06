@@ -5,7 +5,7 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
-import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.DelimiterBasedFrameDecoder
 import io.netty.handler.codec.Delimiters
 import io.netty.handler.codec.string.StringDecoder
@@ -19,12 +19,13 @@ class ClientApplication {
 
         Bootstrap clientBootstrap = new Bootstrap()
         clientBootstrap.group(workers)
-                .channel(NioServerSocketChannel.class)
+                .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline()
                         .addLast(new DelimiterBasedFrameDecoder(4096, Delimiters.lineDelimiter()))
+
                         .addLast(new StringDecoder(CharsetUtil.UTF_8))
                         .addLast(new StringEncoder(CharsetUtil.UTF_8))
                         .addLast(new ClientHandler())
@@ -37,7 +38,7 @@ class ClientApplication {
             if ("close" == message) {
                 break
             }
-            channelFuture.writeAndFlush(message + "\r\n")
+            channelFuture.writeAndFlush(message+ "\r\n")
 
         }
         channelFuture.close()
