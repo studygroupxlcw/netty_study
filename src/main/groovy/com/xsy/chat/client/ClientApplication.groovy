@@ -38,10 +38,12 @@ class ClientApplication {
             if ("close" == message) {
                 break
             }
-            channelFuture.writeAndFlush(message+ "\r\n")
+            //   --李晓龙
 
+            channelFuture.writeAndFlush(message+ "\r\n")
         }
         channelFuture.close()
+        workers.shutdownGracefully()
     }
 
 }
