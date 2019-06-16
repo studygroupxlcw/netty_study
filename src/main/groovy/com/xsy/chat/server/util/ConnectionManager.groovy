@@ -51,7 +51,7 @@ class ConnectionManager {
 
     String getAttrs(String name, Channel ch) {
         if (attrMap.containsKey(ch.remoteAddress().toString())) {
-            attrMap.get(ch.remoteAddress().toString()).get(name)
+            return attrMap.get(ch.remoteAddress().toString()).get(name)
         }
         return null
     }
