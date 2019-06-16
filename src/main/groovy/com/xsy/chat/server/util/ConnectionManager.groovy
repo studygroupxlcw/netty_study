@@ -9,7 +9,10 @@ import io.netty.util.concurrent.GlobalEventExecutor
 @Singleton
 class ConnectionManager {
 
+    // 属性名--属性值和客户端关联在一起
     private ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE)
+
+    private Map<String, Map<String, String>> attrMap = new HashMap<>()
 
     void sendToAll(String msg) {
         channelGroup.writeAndFlush(msg)
@@ -37,5 +40,19 @@ class ConnectionManager {
         }
 
         return connections
+    }
+
+    void setAttrs(String name, String value, Channel ch) {
+        if (!attrMap.containsKey(ch.remoteAddress().toString())) {
+            attrMap.put(ch.remoteAddress().toString(), new HashMap<String, String>())
+        }
+        attrMap.get(ch.remoteAddress().toString()).put(name, value)
+    }
+
+    String getAttrs(String name, Channel ch) {
+        if (attrMap.containsKey(ch.remoteAddress().toString())) {
+            attrMap.get(ch.remoteAddress().toString()).get(name)
+        }
+        return null
     }
 }

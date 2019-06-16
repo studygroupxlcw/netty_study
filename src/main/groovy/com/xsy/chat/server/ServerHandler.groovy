@@ -1,6 +1,8 @@
 package com.xsy.chat.server
 
+import com.sun.xml.internal.ws.util.StringUtils
 import com.xsy.chat.server.util.ConnectionManager
+import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 
@@ -10,14 +12,35 @@ class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof String) {
-            if ("who".equalsIgnoreCase(msg)) {
+            if (msg.startsWith("\$set:")) {
+                systemCommand(msg.substring(5), ctx.channel())
+            } else if ("who".equalsIgnoreCase(msg)){
                 ctx.writeAndFlush("[SERVER]: Chat Room User List: ${ConnectionManager.instance.getAllConnection().join("; ")} \r\n")
-            } else {
-                ctx.writeAndFlush("[Myself]: ${msg}\r\n")
-                ConnectionManager.instance.sendToOther("[${ctx.channel().remoteAddress()}]: ${msg}\r\n", ctx.channel())
+            }else {
+                ctx.writeAndFlush("[${ConnectionManager.instance.getAttrs("name",  ctx.channel()) == null ? "Myself" : ConnectionManager.instance.getAttrs("name",  ctx.channel())}]: ${msg}\r\n")
+                ConnectionManager.instance.sendToOther("[${ConnectionManager.instance.getAttrs("name",  ctx.channel()) == null ? ctx.channel().remoteAddress() : ConnectionManager.instance.getAttrs("name",  ctx.channel())}]: ${msg}\r\n", ctx.channel())
             }
         } else {
             ctx.writeAndFlush("[SERVER]: Invalid Message!!!")
+        }
+    }
+
+    void systemCommand(String s, Channel ch) {
+        // name=XXX,sex=XXX
+        s.split(",").each {
+            command ->
+                if (!command.contains("=")) {
+                    return
+                }
+                String[] attrs = command.split("=")
+                if(attrs.length != 2) {
+                    return
+                }
+                switch (attrs[0].toLowerCase()) {
+                    case "name" :
+                        ConnectionManager.instance.setAttrs("name", attrs[1], ch)
+                        break;
+                }
         }
     }
 
