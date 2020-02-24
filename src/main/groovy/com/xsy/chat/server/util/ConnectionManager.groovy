@@ -1,5 +1,6 @@
 package com.xsy.chat.server.util
 
+import com.xsy.chat.data.Data
 import io.netty.channel.Channel
 import io.netty.channel.group.ChannelGroup
 import io.netty.channel.group.ChannelMatcher
@@ -14,11 +15,21 @@ class ConnectionManager {
 
     private Map<String, Map<String, String>> attrMap = new HashMap<>()
 
-    void sendToAll(String msg) {
+    void sendToAll(Data.Message msg) {
         channelGroup.writeAndFlush(msg)
     }
 
-    void sendToOther(String msg, Channel ch) {
+    void sendToOne(Data.Message msg, String name) {
+        ChannelMatcher matcher = new ChannelMatcher() {
+            @Override
+            boolean matches(Channel channel) {
+                return name.equalsIgnoreCase(attrMap.get(channel.remoteAddress()).get("name"))
+            }
+        }
+        channelGroup.writeAndFlush(msg, matcher)
+    }
+
+    void sendToOther(Data.Message msg, Channel ch) {
         ChannelMatcher matcher = new ChannelMatcher() {
             @Override
             boolean matches(Channel channel) {

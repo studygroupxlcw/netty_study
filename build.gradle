@@ -15,17 +15,19 @@ repositories {
 mainClassName = 'com.xsy.chat.server.Application'
 jar {
     manifest {
-        attributes 'Main-Class':'com.xsy.chat.server.Application'
+        attributes 'Main-Class':'com.xsy.flink.server.Application'
     }
-    from {
+    /*from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+    }*/
 }
 
 dependencies {
     compile (
             'org.codehaus.groovy:groovy-all:2.3.11',
-            'io.netty:netty-all:4.1.35.Final'
+            'io.netty:netty-all:4.1.35.Final',
+            'com.google.protobuf:protobuf-java:3.11.4',
+            "com.google.protobuf:protobuf-java-util:3.11.4"
     )
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

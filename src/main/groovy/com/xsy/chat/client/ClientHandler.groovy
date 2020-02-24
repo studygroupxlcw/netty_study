@@ -1,5 +1,6 @@
 package com.xsy.chat.client
 
+import com.xsy.chat.data.Data
 import com.xsy.chat.server.util.ConnectionManager
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
@@ -7,8 +8,11 @@ import io.netty.channel.ChannelInboundHandlerAdapter
 class ClientHandler extends ChannelInboundHandlerAdapter{
 
     @Override
-    void channelRead(ChannelHandlerContext ctx, Object msg) {
-        println msg
+    void channelRead(ChannelHandlerContext ctx, Object obj) {
+        Data.Message msg = (Data.Message) obj
+        if (msg.msgType == Data.Message.MsgType.USER) {
+            println "[${msg.chatMsg.fromUser}]: ${msg.chatMsg.msg}"
+        }
     }
 
 

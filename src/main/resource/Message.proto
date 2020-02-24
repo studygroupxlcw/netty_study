@@ -1,0 +1,34 @@
+syntax = "proto2";
+
+package protobuf;
+
+option java_package = "com.xsy.chat.data";
+option java_outer_classname = "Data";
+
+message Message{
+    enum MsgType{
+        SYSTEM = 0;
+        USER = 1;
+    }
+    required MsgType msgType = 1;
+
+    oneof dataBody {
+        ChatMsg chatMsg = 2;
+        SystemMsg systemMsg = 3;
+    }
+}
+
+message ChatMsg{
+    optional string from_user = 1;
+    optional string to_user = 2;
+    optional string msg = 3;
+}
+
+message SystemMsg{
+    enum Option{
+        WHO = 0;
+        NAME = 1;
+    }
+    optional Option option = 1;
+    optional string value = 2;
+}

@@ -1,7 +1,8 @@
 package com.xsy.chat.server
 
-import com.sun.xml.internal.ws.util.StringUtils
+import com.xsy.chat.data.Data
 import com.xsy.chat.server.util.ConnectionManager
+import com.xsy.chat.server.util.MessageUtil
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
@@ -10,60 +11,72 @@ import io.netty.channel.ChannelInboundHandlerAdapter
 class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
-    void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof String) {
-            if (msg.startsWith("\$set:")) {
-                systemCommand(msg.substring(5), ctx.channel())
-            } else if ("who".equalsIgnoreCase(msg)){
-                ctx.writeAndFlush("[SERVER]: Chat Room User List: ${ConnectionManager.instance.getAllConnection().join("; ")} \r\n")
-            }else {
-                ctx.writeAndFlush("[${ConnectionManager.instance.getAttrs("name",  ctx.channel()) == null ? "Myself" : ConnectionManager.instance.getAttrs("name",  ctx.channel())}]: ${msg}\r\n")
-                ConnectionManager.instance.sendToOther("[${ConnectionManager.instance.getAttrs("name",  ctx.channel()) == null ? ctx.channel().remoteAddress() : ConnectionManager.instance.getAttrs("name",  ctx.channel())}]: ${msg}\r\n", ctx.channel())
-            }
-        } else {
-            ctx.writeAndFlush("[SERVER]: Invalid Message!!!")
+    void channelRead(ChannelHandlerContext ctx, Object obj) throws Exception {
+        Data.Message msg = (Data.Message) obj
+        switch (msg.getMsgType()) {
+            case Data.Message.MsgType.SYSTEM:
+                systemCommand(msg.getSystemMsg(), ctx)
+                break;
+            case Data.Message.MsgType.USER:
+                chatCommand(msg.getChatMsg(), ctx)
+                break;
+            default:
+                ctx.writeAndFlush(MessageUtil.generateSysResponse("Invalid Message!!!"))
         }
     }
 
-    void systemCommand(String s, Channel ch) {
-        // name=XXX,sex=XXX
-        s.split(",").each {
-            command ->
-                if (!command.contains("=")) {
-                    return
-                }
-                String[] attrs = command.split("=")
-                if(attrs.length != 2) {
-                    return
-                }
-                switch (attrs[0].toLowerCase()) {
-                    case "name" :
-                        ConnectionManager.instance.setAttrs("name", attrs[1], ch)
-                        break;
-                }
+    void chatCommand(Data.ChatMsg chatMsg, ChannelHandlerContext ctx) {
+        String toUser = chatMsg.toUser
+        if ("all".equalsIgnoreCase(toUser)) {
+            ConnectionManager.instance.sendToAll(MessageUtil.generateChatMsg(fetchUserName(ctx.channel()), chatMsg.msg))
+        } else {
+            ConnectionManager.instance.sendToOne(MessageUtil.generateChatMsg(fetchUserName(ctx.channel()), chatMsg.msg), toUser)
         }
+    }
+
+    void systemCommand(Data.SystemMsg msg, ChannelHandlerContext ctx) {
+        switch (msg.option) {
+            case Data.SystemMsg.Option.WHO:
+                ctx.writeAndFlush(
+                        MessageUtil.generateSysResponse("Chat Room User List: ${ConnectionManager.instance.getAllConnection().join("; ")}"))
+                break;
+            case Data.SystemMsg.Option.NAME:
+                if (null == msg.value || "" == msg.value || "server".equalsIgnoreCase(msg.value) || "all".equalsIgnoreCase(msg.value)) {
+                    ctx.writeAndFlush(MessageUtil.generateSysResponse("Invalid Name!!!"))
+                } else {
+                    ConnectionManager.instance.setAttrs("name", msg.value, ctx.channel())
+                }
+                break;
+        }
+    }
+
+    private String fetchUserName(Channel ch) {
+        return ConnectionManager.instance.getAttrs("name", ch) == null ?
+                ch.remoteAddress()
+                :
+                ConnectionManager.instance.getAttrs("name", ch)
     }
 
     @Override
     void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        ConnectionManager.instance.sendToAll("[SERVER]: ${ctx.channel().remoteAddress()} Add Chat Room\r\n")
+        ConnectionManager.instance.sendToAll(MessageUtil.generateSysResponse("${ctx.channel().remoteAddress()} Add Chat Room"))
         ConnectionManager.instance.addChannel(ctx.channel())
     }
 
     @Override
     void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        ConnectionManager.instance.sendToAll("[SERVER]: ${ctx.channel().remoteAddress()} Left Chat Room\r\n")
+        ConnectionManager.instance.sendToAll(MessageUtil.generateSysResponse("${ctx.channel().remoteAddress()} Left Chat Room"))
     }
 
     @Override
     void channelActive(ChannelHandlerContext ctx) throws Exception {
-        ConnectionManager.instance.sendToOther("[SERVER]: ${ctx.channel().remoteAddress()} Online\r\n", ctx.channel())
-        ctx.writeAndFlush("[SERVER]: Chat Room User List: ${ConnectionManager.instance.getAllConnection().join("; ")} \r\n")
+        ConnectionManager.instance.sendToOther(MessageUtil.generateSysResponse("${ctx.channel().remoteAddress()} Online"), ctx.channel())
+        ctx.writeAndFlush(MessageUtil.generateSysResponse("Chat Room User List: ${ConnectionManager.instance.getAllConnection().join("; ")}"))
     }
 
     @Override
     void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        ConnectionManager.instance.sendToOther("[SERVER]: ${ctx.channel().remoteAddress()} Offline\r\n", ctx.channel())
+        ConnectionManager.instance.sendToOther(MessageUtil.generateSysResponse("${ctx.channel().remoteAddress()} Offline"), ctx.channel())
     }
 
     @Override
